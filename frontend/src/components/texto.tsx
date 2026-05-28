@@ -37,7 +37,7 @@ export const EditableText = () => {
   });
 
   const handleEditClick = () => {
-    setNewText('novo texto'); 
+    setNewText('Estrutura: React - Nest - Postgres (docker)'); 
     setIsEditing(true);       
   };
 
