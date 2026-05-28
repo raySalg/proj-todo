@@ -1,0 +1,110 @@
+.fullscreenContainer {
+  width: 100vw;
+  height: 100vh;
+  background-color: #00bcd4;
+  color: #000000;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Roboto', sans-serif;
+  box-sizing: border-box;
+}
+
+.loadingContainer {
+  width: 100vw;
+  height: 100vh;
+  background-color: #00bcd4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.viewWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.reloadButton {
+  position: absolute !important;
+  top: 40px !important;
+  right: 40px !important;
+  color: #000000 !important; 
+  z-index: 10;
+}
+
+.textGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.savedText {
+  font-weight: 500;
+  margin: 0;
+}
+
+.editIcon {
+  color: #000000 !important;
+  transition: transform 0.2s ease;
+}
+
+.editIcon:hover {
+  transform: scale(1.15);
+}
+
+.formGroup {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 24px;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+
+.customInput {
+  width: 100%;
+  padding: 18px 24px;
+  font-size: 20px;
+  border: none;
+  border-radius: 12px;
+  background-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  outline: none;
+}
+
+.customInput:focus {
+  outline: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.saveButton {
+  background-color: #4caf50 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  padding: 12px 40px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  text-transform: none !important; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+  transition: background-color 0.2s, transform 0.1s !important;
+}
+
+.saveButton:hover {
+  background-color: #43a047 !important;
+}
+
+.saveButton:active {
+  transform: scale(0.98) !important;
+}

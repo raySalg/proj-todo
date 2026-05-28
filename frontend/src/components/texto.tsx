@@ -1,108 +1,100 @@
-import { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, IconButton, CircularProgress } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
+import { useState } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { RefreshCcw, Pencil } from 'lucide-react';
+import { Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
+import styles from './texto.module.css';
 
-const DOCUMENT_ID = 1; // Exemplo de ID fixo para o seu texto
-const API_URL = `http://localhost:3000/document/${DOCUMENT_ID}`; // Ajuste a porta se necessário
+const DOCUMENT_ID = 1; 
+const API_URL = `http://localhost:3000/document/${DOCUMENT_ID}`; 
 
 export const EditableText = () => {
-  const [text, setText] = useState<string>('');
-  const [tempText, setTempText] = useState<string>(''); // Guarda a edição antes de salvar
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [newText, setNewText] = useState<string>(''); 
+  const [isEditing, setIsEditing] = useState<boolean>(false); 
+  const queryClient = useQueryClient();
 
-  // 1. Busca o texto inicial do Back-end
-  useEffect(() => {
-    axios.get(API_URL)
-      .then((res) => {
-        if (res.data) {
-          setText(res.data.content);
-          setTempText(res.data.content);
-        }
-      })
-      .catch((err) => console.error("Erro ao buscar texto:", err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  // 2. Função para salvar o texto (Disparada no clique do botão)
-const handleSave = async () => {
-  setLoading(true);
-  try {
-    // Garantimos que estamos enviando o objeto com a propriedade 'content'
-    const response = await axios.post(API_URL, { content: tempText });
-    
-    // Forçamos o React a atualizar a tela com o que o banco gravou
-    if (response.data) {
-      setText(response.data.content || '');
-      setTempText(response.data.content || '');
+  const { data: documentData, isLoading, refetch } = useQuery({
+    queryKey: ['document', DOCUMENT_ID], 
+    queryFn: async () => {
+      const response = await axios.get(API_URL);
+      return response.data; 
     }
-    setIsEditing(false);
-  } catch (error) {
-    console.error("Erro ao salvar o texto:", error);
-    alert("Não foi possível salvar o texto.");
-  } finally {
-    setLoading(false);
-  }
-};
+  });
 
-  const handleCancel = () => {
-    setTempText(text); // Reverte as alterações não salvas
-    setIsEditing(false);
+  const mutation = useMutation({
+    mutationFn: async (content: string) => {
+      const response = await axios.post(API_URL, { content });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['document', DOCUMENT_ID] });
+      setIsEditing(false); 
+    },
+    onError: (error) => {
+      console.error(error);
+      alert("Não foi possível salvar o texto.");
+    }
+  });
+
+  const handleEditClick = () => {
+    setNewText('novo texto'); 
+    setIsEditing(true);       
   };
 
-  if (loading && text === '') {
-    return <CircularProgress />;
+  const handleSave = () => {
+    mutation.mutate(newText); 
+  };
+
+  if (isLoading) {
+    return (
+      <Box className={styles.loadingContainer}>
+        <CircularProgress sx={{ color: '#fff' }} />
+      </Box>
+    );
   }
 
   return (
-    <Box sx={{ p: 3, maxWidth: 600, mx: 'auto', border: '1px solid #ccc', borderRadius: 2, mt: 4 }}>
-      {isEditing ? (
-        // MODO DE EDIÇÃO
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            label="Editar Texto"
-            value={tempText}
-            onChange={(e) => setTempText(e.target.value)}
-          />
-          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-            <Button 
-              variant="outlined" 
-              color="error" 
-              startIcon={<CancelIcon />} 
-              onClick={handleCancel}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />} 
-              onClick={handleSave}
-              disabled={loading}
-            >
-              {loading ? 'Salvando...' : 'Atualizar'}
-            </Button>
+    <Box className={styles.fullscreenContainer}>
+      
+      {!isEditing ? (
+        <Box className={styles.viewWrapper}>
+          <IconButton 
+            onClick={() => refetch({ cancelRefetch: false })} 
+            title="Recarregar dados"
+            className={styles.reloadButton}
+          >
+            <RefreshCcw size={40} />
+          </IconButton> 
+
+          <Box className={styles.textGroup}>
+            <Typography variant="h4" className={styles.savedText}>
+              {documentData?.content || 'Nenhum texto cadastrado.'}
+            </Typography> 
+            <IconButton onClick={handleEditClick} className={styles.editIcon}>
+              <Pencil size={36} />
+            </IconButton>
           </Box>
         </Box>
       ) : (
-        // MODO DE VISUALIZAÇÃO
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'between', gap: 2 }}>
-          <Typography variant="body1" sx={{ flexGrow: 1, whiteSpace: 'pre-line' }}>
-            {text || <i>Nenhum texto cadastrado. Clique no lápis para adicionar.</i>}
-          </Typography>
-          <IconButton color="primary" onClick={() => setIsEditing(true)}>
-            <EditIcon />
-          </IconButton>
+        <Box className={styles.formGroup}>
+          <input
+            type="text"
+            className={styles.customInput}
+            value={newText}
+            onChange={(e: any) => setNewText(e.target.value)}
+            autoFocus
+          />
+          <Button 
+            variant="contained"
+            onClick={handleSave}
+            disabled={mutation.isPending}
+            className={styles.saveButton}
+          >
+            {mutation.isPending ? 'Salvando...' : 'Salvar'}
+          </Button>
         </Box>
       )}
+
     </Box>
   );
 };
